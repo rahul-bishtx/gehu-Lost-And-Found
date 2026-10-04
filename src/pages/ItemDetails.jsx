@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
@@ -42,6 +42,16 @@ export default function ItemDetails() {
   }
 
   const [copied, setCopied] = useState('')
+  const [lightbox, setLightbox] = useState(false)
+
+  // Close lightbox on ESC key
+  const closeLightbox = useCallback(() => setLightbox(false), [])
+  useEffect(() => {
+    if (!lightbox) return
+    const onKey = (e) => { if (e.key === 'Escape') closeLightbox() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox, closeLightbox])
 
   function formatWhatsAppNumber(phone) {
     if (!phone) return ''
@@ -176,7 +186,13 @@ export default function ItemDetails() {
         <div className="col-span-1 md:col-span-5 lg:col-span-5 flex flex-col gap-4">
           <div className="w-full aspect-[4/3] sm:aspect-square md:aspect-[4/5] bg-surface-muted rounded-2xl overflow-hidden shadow-sm relative group border border-outline-variant/30">
             {item.image_url ? (
-              <img src={item.image_url} alt={item.item_name} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+              <div className="relative w-full h-full cursor-zoom-in" onClick={() => setLightbox(true)}>
+                <img src={item.image_url} alt={item.item_name} className="w-full h-full object-contain bg-surface-muted transition-transform duration-500 group-hover:scale-105" />
+                {/* Zoom hint */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/15 transition-all duration-200 flex items-center justify-center pointer-events-none">
+                  <span className="material-symbols-outlined text-white text-4xl opacity-0 group-hover:opacity-100 drop-shadow-lg transition-opacity duration-200">zoom_in</span>
+                </div>
+              </div>
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <span className="material-symbols-outlined text-6xl text-on-surface-variant opacity-30">image</span>
@@ -192,6 +208,27 @@ export default function ItemDetails() {
             </div>
           </div>
         </div>
+
+        {/* Lightbox Modal */}
+        {lightbox && item.image_url && (
+          <div
+            className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 backdrop-blur-sm"
+            onClick={closeLightbox}
+          >
+            <button
+              onClick={closeLightbox}
+              className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 z-10"
+            >
+              <span className="material-symbols-outlined text-[24px]">close</span>
+            </button>
+            <img
+              src={item.image_url}
+              alt={item.item_name}
+              className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
 
         {/* Details */}
         <div className="col-span-1 md:col-span-7 lg:col-span-7 flex flex-col justify-between gap-5">

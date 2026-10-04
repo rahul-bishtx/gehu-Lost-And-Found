@@ -71,7 +71,7 @@ export function AuthProvider({ children }) {
   }
 
   async function signUp({ email, password, name, phone, profilePhoto }) {
-    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+    const redirectUrl = `${import.meta.env.VITE_APP_URL}/login`
     const { data, error } = await supabase.auth.signUp({ 
       email, 
       password,
@@ -136,7 +136,7 @@ export function AuthProvider({ children }) {
   }
 
   async function resendVerification(email) {
-    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+    const redirectUrl = `${import.meta.env.VITE_APP_URL}/login`
     const { data, error } = await supabase.auth.resend({
       type: 'signup',
       email,
@@ -162,7 +162,7 @@ export function AuthProvider({ children }) {
   }
 
   async function resetPassword(email) {
-    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined
+    const redirectUrl = `${import.meta.env.VITE_APP_URL}/login`
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: redirectUrl,
     })

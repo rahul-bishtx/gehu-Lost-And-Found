@@ -29,7 +29,7 @@ export default function ItemCard({ item }) {
             <img
               src={item.image_url}
               alt={item.item_name}
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="w-full h-full object-contain bg-surface-muted transition-transform duration-700 group-hover:scale-110"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-black/10 opacity-60 group-hover:opacity-40 transition-opacity duration-500" />
           </>

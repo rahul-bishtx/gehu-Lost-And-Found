@@ -1,9 +1,18 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 export default function ImageUpload({ onFileSelect, preview, setPreview }) {
   const fileRef = useRef(null)
   const cameraRef = useRef(null)
   const [dragOver, setDragOver] = useState(false)
+  const [lightbox, setLightbox] = useState(false)
+
+  // Close lightbox on ESC key
+  useEffect(() => {
+    if (!lightbox) return
+    const onKey = (e) => { if (e.key === 'Escape') setLightbox(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightbox])
 
   const handleFile = (file) => {
     if (!file) return
@@ -33,11 +42,22 @@ export default function ImageUpload({ onFileSelect, preview, setPreview }) {
     <div>
       {preview ? (
         <div className="relative rounded-xl overflow-hidden border-2 border-outline-variant bg-surface-muted">
-          <img src={preview} alt="Preview" className="w-full h-56 object-cover" />
+          {/* Clickable preview — opens lightbox */}
+          <div className="relative cursor-zoom-in group" onClick={() => setLightbox(true)}>
+            <img src={preview} alt="Preview" className="w-full h-56 object-contain bg-surface-muted" />
+            {/* Zoom hint overlay */}
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-200 flex items-center justify-center">
+              <span className="material-symbols-outlined text-white text-3xl opacity-0 group-hover:opacity-100 drop-shadow-lg transition-opacity duration-200">
+                zoom_in
+              </span>
+            </div>
+          </div>
+
+          {/* Remove button */}
           <button
             type="button"
             onClick={() => { setPreview(null); onFileSelect(null) }}
-            className="absolute top-3 right-3 bg-on-surface/80 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-on-surface transition-all shadow-md active:scale-95"
+            className="absolute top-3 right-3 bg-on-surface/80 text-white w-9 h-9 rounded-full flex items-center justify-center hover:bg-on-surface transition-all shadow-md active:scale-95 z-10"
             title="Remove photo"
           >
             <span className="material-symbols-outlined text-[20px]">close</span>
@@ -62,7 +82,7 @@ export default function ImageUpload({ onFileSelect, preview, setPreview }) {
             Add a photo of the item
           </p>
           <p className="font-body text-xs text-on-secondary-container mb-5 max-w-xs">
-            Drag & drop here or choose an option below (max. 5MB)
+            Drag &amp; drop here or choose an option below (max. 5MB)
           </p>
 
           {/* Action Buttons: Mobile Camera + Gallery */}
@@ -106,6 +126,31 @@ export default function ImageUpload({ onFileSelect, preview, setPreview }) {
         onChange={(e) => handleFile(e.target.files[0])}
         className="hidden"
       />
+
+      {/* Lightbox Modal */}
+      {lightbox && (
+        <div
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/90 backdrop-blur-sm animate-fade-in"
+          onClick={() => setLightbox(false)}
+        >
+          {/* Close button */}
+          <button
+            type="button"
+            onClick={() => setLightbox(false)}
+            className="absolute top-4 right-4 bg-white/10 hover:bg-white/20 text-white w-11 h-11 rounded-full flex items-center justify-center transition-all shadow-lg active:scale-95 z-10"
+          >
+            <span className="material-symbols-outlined text-[24px]">close</span>
+          </button>
+
+          {/* Full image — stop propagation so clicking image doesn't close */}
+          <img
+            src={preview}
+            alt="Full preview"
+            className="max-w-[95vw] max-h-[90vh] object-contain rounded-xl shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   )
 }
